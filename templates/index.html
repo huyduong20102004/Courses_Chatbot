@@ -3,418 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Mentor Pro - Trợ lý khóa học AI</title>
+  <title>AI Course Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <!-- Thêm Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <div class="app-container">
-    <!-- Sidebar nâng cấp -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo-container">
-          <i class="fas fa-brain logo-icon"></i>
-          <h2>AI Mentor <span class="pro-badge">Pro</span></h2>
-        </div>
-        <p class="sidebar-subtitle">Trợ lý thông minh tư vấn khóa học AI/ML</p>
-      </div>
-      
-      <div class="sidebar-menu">
-        <button class="menu-item active" onclick="showTab('chat-tab')">
-          <i class="fas fa-comment-dots"></i> Trò chuyện
-          <span class="notification-badge" id="chat-notification">2</span>
-        </button>
-        <button class="menu-item" onclick="showTab('courses-tab')">
-          <i class="fas fa-book-open"></i> Khóa học
-        </button>
-        <button class="menu-item" onclick="showTab('resources-tab')">
-          <i class="fas fa-box-open"></i> Tài nguyên
-        </button>
-        <button class="menu-item" onclick="showTab('progress-tab')">
-          <i class="fas fa-chart-line"></i> Tiến trình
-        </button>
-        <button class="menu-item" onclick="showTab('settings-tab')">
-          <i class="fas fa-sliders-h"></i> Cài đặt
-        </button>
-      </div>
-      
-      <div class="sidebar-footer">
-        <div class="user-profile">
-          <div class="avatar" id="user-avatar">
-            <i class="fas fa-user"></i>
-          </div>
-          <div class="user-info">
-            <span class="username" id="username">Người dùng</span>
-            <span class="user-email" id="user-email">user@example.com</span>
-          </div>
-          <button class="profile-btn" onclick="showProfileModal()">
-            <i class="fas fa-ellipsis-v"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Tab Chat -->
-      <div class="content-tab active" id="chat-tab">
-        <div class="chat-header">
-          <div class="header-left">
-            <h1><i class="fas fa-robot"></i> Trợ lý AI Mentor</h1>
-            <div class="status-indicator">
-              <span class="status-dot online"></span>
-              <span class="status-text">Online</span>
-            </div>
-          </div>
-          <div class="chat-actions">
-            <button class="action-btn" title="Lịch sử trò chuyện" onclick="showChatHistory()">
-              <i class="fas fa-history"></i>
-            </button>
-            <button class="action-btn" title="Xóa lịch sử" onclick="showClearChatModal()">
-              <i class="fas fa-trash"></i>
-            </button>
-            <button class="action-btn" title="Tải xuống" onclick="exportChat()">
-              <i class="fas fa-file-export"></i>
-            </button>
-            <button class="action-btn" title="Tìm kiếm" onclick="toggleSearch()">
-              <i class="fas fa-search"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="search-container" id="search-container" style="display: none;">
-          <input type="text" id="chat-search" placeholder="Tìm kiếm trong trò chuyện...">
-          <button class="search-btn" onclick="searchChat()"><i class="fas fa-search"></i></button>
-          <button class="close-search-btn" onclick="toggleSearch()"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div id="chat-box" class="chat-box">
-          <div class="welcome-message">
-            <div class="bot-avatar pulse">
-              <i class="fas fa-brain"></i>
-            </div>
-            <div class="welcome-content">
-              <h3>Chào mừng đến với AI Mentor Pro!</h3>
-              <p>Tôi là trợ lý AI có thể giúp bạn:</p>
-              <ul class="welcome-features">
-                <li><i class="fas fa-check-circle"></i> Tư vấn khóa học AI/ML phù hợp</li>
-                <li><i class="fas fa-check-circle"></i> Đánh giá lộ trình học tập</li>
-                <li><i class="fas fa-check-circle"></i> Giải đáp thắc mắc về công nghệ AI</li>
-                <li><i class="fas fa-check-circle"></i> Gợi ý tài nguyên học tập</li>
-              </ul>
-              <div class="quick-questions">
-                <p class="quick-title">Bạn quan tâm đến:</p>
-                <div class="quick-grid">
-                  <button class="quick-btn" onclick="insertQuestion('Khóa học AI nào phù hợp cho người mới bắt đầu?')">
-                    <i class="fas fa-user-graduate"></i> Khóa học cho người mới
-                  </button>
-                  <button class="quick-btn" onclick="insertQuestion('Học AI cần những kiến thức nền tảng gì?')">
-                    <i class="fas fa-layer-group"></i> Kiến thức nền tảng
-                  </button>
-                  <button class="quick-btn" onclick="insertQuestion('Có học bổng cho khóa học AI không?')">
-                    <i class="fas fa-award"></i> Học bổng AI
-                  </button>
-                  <button class="quick-btn" onclick="insertQuestion('Lộ trình trở thành chuyên gia AI?')">
-                    <i class="fas fa-road"></i> Lộ trình học tập
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="input-container">
-          <div class="input-tools">
-            <button class="tool-btn" title="Tải lên tệp" onclick="document.getElementById('file-input').click()">
-              <i class="fas fa-paperclip"></i>
-              <input type="file" id="file-input" style="display: none;">
-            </button>
-            <button class="tool-btn" title="Ghi âm" id="record-btn" onclick="toggleRecording()">
-              <i class="fas fa-microphone"></i>
-            </button>
-            <button class="tool-btn" title="Bảng ký tự đặc biệt" onclick="toggleEmojiPicker()">
-              <i class="far fa-smile"></i>
-            </button>
-          </div>
-          <div class="emoji-picker" id="emoji-picker" style="display: none;"></div>
-          <input 
-            type="text" 
-            id="user-input" 
-            placeholder="Nhập câu hỏi hoặc yêu cầu về khóa học AI..." 
-            onkeypress="handleKeyPress(event)"
-          />
-          <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Gửi (Enter)">
-            <i class="fas fa-paper-plane"></i>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Tab Khóa học -->
-      <div class="content-tab" id="courses-tab">
-        <div class="courses-header">
-          <h1><i class="fas fa-book-open"></i> Danh mục Khóa Học AI/ML</h1>
-          <div class="courses-filter">
-            <select id="course-category">
-              <option value="all">Tất cả danh mục</option>
-              <option value="beginner">Cơ bản</option>
-              <option value="intermediate">Trung cấp</option>
-              <option value="advanced">Nâng cao</option>
-              <option value="specialization">Chuyên ngành</option>
-            </select>
-            <div class="search-box">
-              <input type="text" id="course-search" placeholder="Tìm khóa học...">
-              <button class="search-btn"><i class="fas fa-search"></i></button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="courses-grid" id="courses-grid">
-          <!-- Courses will be loaded here -->
-        </div>
-        
-        <div class="pagination">
-          <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-          <span class="page-info">Trang 1/5</span>
-          <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-      
-      <!-- Tab Tài nguyên -->
-      <div class="content-tab" id="resources-tab">
-        <h1><i class="fas fa-box-open"></i> Tài Nguyên Học Tập</h1>
-        <div class="resources-container">
-          <div class="resource-category">
-            <h2><i class="fas fa-book"></i> Sách & Tài liệu</h2>
-            <div class="resource-grid">
-              <!-- Resources will be loaded here -->
-            </div>
-          </div>
-          <div class="resource-category">
-            <h2><i class="fas fa-video"></i> Video & Khóa học miễn phí</h2>
-            <div class="resource-grid">
-              <!-- Resources will be loaded here -->
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Tab Tiến trình -->
-      <div class="content-tab" id="progress-tab">
-        <h1><i class="fas fa-chart-line"></i> Tiến Trình Học Tập</h1>
-        <div class="progress-container">
-          <div class="progress-stats">
-            <div class="stat-card">
-              <div class="stat-icon blue">
-                <i class="fas fa-clock"></i>
-              </div>
-              <div class="stat-info">
-                <h3>12 giờ</h3>
-                <p>Tổng thời gian học</p>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon green">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <div class="stat-info">
-                <h3>8/15</h3>
-                <p>Bài học đã hoàn thành</p>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon orange">
-                <i class="fas fa-trophy"></i>
-              </div>
-              <div class="stat-info">
-                <h3>3</h3>
-                <p>Chứng chỉ đạt được</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="progress-charts">
-            <div class="chart-container">
-              <h3>Tiến độ khóa học</h3>
-              <div class="chart" id="course-progress-chart">
-                <!-- Chart will be rendered here -->
-              </div>
-            </div>
-            <div class="chart-container">
-              <h3>Kỹ năng đạt được</h3>
-              <div class="chart" id="skills-chart">
-                <!-- Chart will be rendered here -->
-              </div>
-            </div>
-          </div>
-          
-          <div class="recent-activity">
-            <h3>Hoạt động gần đây</h3>
-            <div class="activity-list">
-              <!-- Activities will be loaded here -->
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Tab Cài đặt -->
-      <div class="content-tab" id="settings-tab">
-        <h1><i class="fas fa-sliders-h"></i> Cài Đặt</h1>
-        <div class="settings-container">
-          <div class="settings-section">
-            <h2><i class="fas fa-user-cog"></i> Tài khoản</h2>
-            <div class="settings-form">
-              <div class="form-group">
-                <label for="username-input">Tên hiển thị</label>
-                <input type="text" id="username-input" value="Người dùng">
-              </div>
-              <div class="form-group">
-                <label for="email-input">Email</label>
-                <input type="email" id="email-input" value="user@example.com">
-              </div>
-              <div class="form-group">
-                <label for="avatar-select">Ảnh đại diện</label>
-                <div class="avatar-options">
-                  <div class="avatar-option selected" onclick="selectAvatar(1)">
-                    <i class="fas fa-user"></i>
-                  </div>
-                  <div class="avatar-option" onclick="selectAvatar(2)">
-                    <i class="fas fa-robot"></i>
-                  </div>
-                  <div class="avatar-option" onclick="selectAvatar(3)">
-                    <i class="fas fa-graduation-cap"></i>
-                  </div>
-                  <div class="avatar-option" onclick="selectAvatar(4)">
-                    <i class="fas fa-laptop-code"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="settings-section">
-            <h2><i class="fas fa-paint-brush"></i> Giao diện</h2>
-            <div class="settings-form">
-              <div class="form-group">
-                <label for="theme-select">Chủ đề</label>
-                <select id="theme-select">
-                  <option value="light">Sáng</option>
-                  <option value="dark">Tối</option>
-                  <option value="system">Theo hệ thống</option>
-                  <option value="professional">Chuyên nghiệp</option>
-                  <option value="midnight">Nửa đêm</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="font-size">Cỡ chữ: <span id="font-size-value">16px</span></label>
-                <input type="range" id="font-size" min="12" max="20" value="16" step="1">
-              </div>
-              <div class="form-group">
-                <label for="density-select">Mật độ hiển thị</label>
-                <select id="density-select">
-                  <option value="comfortable">Thoải mái</option>
-                  <option value="normal">Bình thường</option>
-                  <option value="compact">Gọn gàng</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          
-          <div class="settings-section">
-            <h2><i class="fas fa-bell"></i> Thông báo</h2>
-            <div class="settings-form">
-              <div class="form-group checkbox-group">
-                <input type="checkbox" id="notify-messages" checked>
-                <label for="notify-messages">Thông báo tin nhắn mới</label>
-              </div>
-              <div class="form-group checkbox-group">
-                <input type="checkbox" id="notify-courses" checked>
-                <label for="notify-courses">Thông báo khóa học mới</label>
-              </div>
-              <div class="form-group checkbox-group">
-                <input type="checkbox" id="notify-promotions">
-                <label for="notify-promotions">Thông báo ưu đãi</label>
-              </div>
-            </div>
-          </div>
-          
-          <div class="settings-actions">
-            <button class="save-btn" onclick="saveSettings()">
-              <i class="fas fa-save"></i> Lưu thay đổi
-            </button>
-            <button class="reset-btn" onclick="resetSettings()">
-              <i class="fas fa-undo"></i> Mặc định
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Main content -->
+  <div class="content">
+    <header class="header">
+      <h1>Chào mừng đến với Khóa học AI</h1>
+      <p>Khám phá thế giới trí tuệ nhân tạo với sự hỗ trợ từ chatbot thông minh của chúng tôi!</p>
+    </header>
   </div>
-  
-  <!-- Modals -->
-  <div class="modal" id="profile-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Tài khoản</h3>
-        <button class="close-modal" onclick="closeModal('profile-modal')">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="profile-avatar-large">
-          <i class="fas fa-user" id="modal-avatar-icon"></i>
-        </div>
-        <div class="profile-info">
-          <h4 id="modal-username">Người dùng</h4>
-          <p id="modal-email">user@example.com</p>
-          <p class="member-since">Thành viên từ: 24/07/2023</p>
-        </div>
-        <div class="profile-actions">
-          <button class="profile-action-btn">
-            <i class="fas fa-user-edit"></i> Chỉnh sửa hồ sơ
-          </button>
-          <button class="profile-action-btn">
-            <i class="fas fa-key"></i> Đổi mật khẩu
-          </button>
-          <button class="profile-action-btn logout-btn">
-            <i class="fas fa-sign-out-alt"></i> Đăng xuất
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="modal" id="clear-chat-modal">
-    <div class="modal-content small">
-      <div class="modal-header">
-        <h3>Xác nhận</h3>
-        <button class="close-modal" onclick="closeModal('clear-chat-modal')">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện?</p>
-        <p class="text-muted">Hành động này không thể hoàn tác.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn secondary" onclick="closeModal('clear-chat-modal')">Hủy bỏ</button>
-        <button class="btn danger" onclick="clearChat()">Xóa tất cả</button>
-      </div>
-    </div>
-  </div>
-  
 
-  <!-- Toast notification -->
-  <div class="toast" id="toast"></div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest"></script>
-  <script src="/static/script.js"></script>
+  <!-- Chatbot toggle button -->
+  <button id="chatbot-btn" class="chatbot-btn" title="Mở chatbot AI" aria-label="Mở chatbot AI">
+    <span class="chatbot-icon"><i class="fas fa-robot"></i></span>
+  </button>
+
+  <!-- Chatbot popup -->
+  <div id="chat-popup" class="chat-popup hidden">
+    <!-- Chat header -->
+<div class="chat-header">
+  <div class="chat-header-content" style="display: flex; align-items: center; gap: 10px; margin-right: auto;">
+    <div style="background-color: #fff; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+  <i class="fas fa-robot" style="font-size: 20px; color: #4f46e5; line-height: 1; vertical-align: middle;"></i>
+</div>
+
+
+    <div style="line-height: 1.2;">
+      <h2 style="margin: 0; font-size: 16px;">AI Chatbot - Trợ lý Khoá học</h2>
+      <div class="status-indicator" style="display: flex; align-items: center; gap: 6px;">
+        <span class="status-dot" style="width: 8px; height: 8px; background-color: #00c853; border-radius: 50%; display: inline-block;"></span>
+        <span class="status-text" style="font-size: 12px; color: #FFFFFF;">Đang trực tuyến</span>
+      </div>
+    </div>
+  </div>
+  <button id="close-btn" class="icon-btn" title="Đóng chatbot" aria-label="Đóng chatbot"style="margin-left: auto;">
+    <span>✖</span>
+  </button>
+</div>
+
+<!-- Chat body -->
+<div id="chat-box" class="chat-box">
+  <div class="welcome-message">
+    <div class="welcome-header" style="display: flex; align-items: center; gap: 10px;">
+      <i class="fas fa-robot" style="font-size: 28px; color: #4f46e5;"></i> <!-- tăng cỡ icon -->
+      <h3 style="margin: 0;">Xin chào! Tôi là trợ lý AI</h3>
+    </div>
+    <p>Tôi có thể giúp gì cho bạn về khóa học Trí tuệ nhân tạo?</p>
+
+    <div class="quick-questions">
+      <button class="quick-btn" data-question="Khóa học AI gồm những nội dung gì?">Khóa học gồm nội dung gì?</button>
+      <button class="quick-btn" data-question="Tôi cần chuẩn bị gì trước khi học?">Cần chuẩn bị gì?</button>
+      <button class="quick-btn" data-question="Lộ trình học AI như thế nào?">Lộ trình học tập</button>
+      <button class="quick-btn" data-question="Tôi có thể làm dự án gì với AI?">Dự án thực hành</button>
+    </div>
+  </div>
+</div>
+
+    <!-- Typing indicator với icon robot -->
+<div id="typing-indicator" class="typing-indicator hidden" style="align-items: center; gap: 8px; padding: 10px;">
+  <i class="fas fa-robot ai-icon" style="font-size: 22px; color: #4f46e5;"></i>
+  <div class="typing-dot"></div>
+  <div class="typing-dot"></div>
+  <div class="typing-dot"></div>
+</div>
+
+
+    <!-- Chat input -->
+    <div class="chat-input">
+      <div class="input-wrapper">
+        <textarea 
+          id="user-input" 
+          placeholder="Nhập câu hỏi của bạn..." 
+          rows="1"
+          aria-label="Nhập câu hỏi"
+        ></textarea>
+        <div class="input-controls">
+          <button id="attachment-btn" class="icon-btn" title="Thêm tệp đính kèm" aria-label="Thêm tệp đính kèm">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21.44 11.05L12.25 20.24C11.1242 21.3658 9.59723 21.9983 8.005 21.9983C6.41277 21.9983 4.8858 21.3658 3.76 20.24C2.63421 19.1142 2.00174 17.5872 2.00174 15.995C2.00174 14.4028 2.63421 12.8758 3.76 11.75L12.95 2.56C13.7006 1.80944 14.7185 1.38778 15.78 1.38778C16.8416 1.38778 17.8594 1.80944 18.61 2.56C19.3606 3.31056 19.7822 4.32845 19.7822 5.39C19.7822 6.45155 19.3606 7.46944 18.61 8.22L9.41 17.41C9.03472 17.7853 8.52574 17.9961 7.995 17.9961C7.46426 17.9961 6.95528 17.7853 6.58 17.41C6.20472 17.0347 5.9939 16.5257 5.9939 15.995C5.9939 15.4643 6.20472 14.9553 6.58 14.58L15.07 6.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button id="send-btn" class="icon-btn primary" title="Gửi câu hỏi" aria-label="Gửi câu hỏi">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional controls -->
+    <div class="chat-controls">
+      <button id="history-btn" class="icon-btn" title="Lịch sử trò chuyện" aria-label="Lịch sử trò chuyện">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button id="clear-btn" class="icon-btn" title="Xóa cuộc trò chuyện" aria-label="Xóa cuộc trò chuyện">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button id="minimize-btn" class="icon-btn" title="Thu nhỏ chatbot" aria-label="Thu nhỏ chatbot">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 15H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-
-
-
 
 
 
