@@ -1,169 +1,173 @@
-// === CÁC DOM ELEMENT ===
-const chatbotBtn = document.getElementById('chatbot-btn');
-const chatPopup = document.getElementById('chat-popup');
-const closeBtn = document.getElementById('close-btn');
-const sendBtn = document.getElementById('send-btn');
-const userInput = document.getElementById('user-input');
-const chatBox = document.getElementById('chat-box');
-const clearBtn = document.getElementById('clear-btn');
-const minimizeBtn = document.getElementById('minimize-btn');
-const typingIndicator = document.getElementById('typing-indicator');
-const notificationBadge = document.querySelector('.notification-badge');
-const quickBtns = document.querySelectorAll('.quick-btn');
+// SDT Academy Chatbot Script
+// Description: JavaScript for handling chatbot functionality
+// Version: 1.2.0 (Optimized after removing chat controls)
 
-let isMinimized = false;
-let hasNewMessage = false;
-let messageHistory = [];
+// === DOM Elements ===
+const elements = {
+  chatbotButton: document.getElementById('chatbot-btn'),
+  chatPopup: document.getElementById('chat-popup'),
+  closeButton: document.getElementById('close-btn'),
+  sendButton: document.getElementById('send-btn'),
+  userInput: document.getElementById('user-input'),
+  chatBox: document.getElementById('chat-box'),
+  typingIndicator: document.getElementById('typing-indicator'),
+  quickButtons: document.querySelectorAll('.quick-btn'),
+  notificationBadge: document.querySelector('.notification-badge')
+};
 
-// === MỞ / ẨN CHATBOT ===
-chatbotBtn.addEventListener('click', () => {
-  chatPopup.classList.toggle('hidden');
-  if (!chatPopup.classList.contains('hidden')) {
-    userInput.focus();
+// === State Variables ===
+let state = {
+  hasNewMessage: false,
+  messageHistory: []
+};
+
+// === Utility Functions ===
+const getCurrentTime = () => {
+  const now = new Date();
+  return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+};
+
+const scrollToBottom = () => {
+  elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+};
+
+const showNotification = (message, type = 'error') => {
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 10);
+
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+};
+
+// === Chatbot Toggle ===
+elements.chatbotButton.addEventListener('click', () => {
+  elements.chatPopup.classList.toggle('hidden');
+  if (!elements.chatPopup.classList.contains('hidden')) {
+    elements.userInput.focus();
     scrollToBottom();
-    if (hasNewMessage) {
-      hasNewMessage = false;
-      notificationBadge.classList.add('hidden');
-      notificationBadge.textContent = '';
+    if (state.hasNewMessage) {
+      state.hasNewMessage = false;
+      if (elements.notificationBadge) {
+        elements.notificationBadge.classList.add('hidden');
+        elements.notificationBadge.textContent = '';
+      }
     }
   }
 });
 
-// === ĐÓNG CHATBOT ===
-closeBtn.addEventListener('click', () => {
-  chatPopup.classList.add('hidden');
-  isMinimized = false;
+// === Close Chatbot ===
+elements.closeButton.addEventListener('click', () => {
+  elements.chatPopup.classList.add('hidden');
 });
 
-// === THU NHỎ / MỞ RỘNG CHATBOT ===
-minimizeBtn.addEventListener('click', () => {
-  if (!isMinimized) {
-    chatPopup.classList.add('minimized');
-    minimizeBtn.querySelector('svg path').setAttribute('d', 'M5 9H19');
-    isMinimized = true;
-  } else {
-    chatPopup.classList.remove('minimized');
-    minimizeBtn.querySelector('svg path').setAttribute('d', 'M5 15H19');
-    isMinimized = false;
-    scrollToBottom();
-  }
-});
-
-// === XÓA LỊCH SỬ ===
-clearBtn.addEventListener('click', () => {
-  if (chatBox.children.length > 1) {
-    messageHistory.push({
-      date: new Date().toISOString(),
-      messages: Array.from(chatBox.children).slice(1).map(el => el.outerHTML)
-    });
-  }
-
-  while (chatBox.firstChild) {
-    chatBox.removeChild(chatBox.firstChild);
-  }
-
-  const welcomeMsg = document.createElement('div');
-  welcomeMsg.className = 'welcome-message';
-  welcomeMsg.innerHTML = `
-    <div class="welcome-header">
-      <img src="{{ url_for('static', filename='ai-icon.png') }}" alt="AI Icon" />
-      <h3>Xin chào! Tôi là trợ lý AI</h3>
-    </div>
-    <p>Tôi có thể giúp gì cho bạn về khóa học Trí tuệ nhân tạo?</p>
-    <div class="quick-questions">
-      <button class="quick-btn" data-question="Khóa học AI gồm những nội dung gì?">Khóa học gồm nội dung gì?</button>
-      <button class="quick-btn" data-question="Tôi cần chuẩn bị gì trước khi học?">Cần chuẩn bị gì?</button>
-      <button class="quick-btn" data-question="Lộ trình học AI như thế nào?">Lộ trình học tập</button>
-      <button class="quick-btn" data-question="Tôi có thể làm dự án gì với AI?">Dự án thực hành</button>
-    </div>
-  `;
-  chatBox.appendChild(welcomeMsg);
-
-  document.querySelectorAll('.quick-btn').forEach(btn => {
-    btn.addEventListener('click', handleQuickQuestion);
+// === Quick Buttons Handling ===
+elements.quickButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const question = button.dataset.question;
+    if (question) {
+      elements.userInput.value = question;
+      sendMessage();
+    }
   });
-
-  showNotification("Cuộc trò chuyện đã được xóa");
 });
 
-// === XỬ LÝ NÚT NHANH ===
-quickBtns.forEach(btn => {
-  btn.addEventListener('click', handleQuickQuestion);
-});
-
-function handleQuickQuestion(e) {
-  const question = e.target.dataset.question;
-  userInput.value = question;
-  sendMessage();
-}
-
-// === GỬI TIN NHẮN ===
-sendBtn.addEventListener('click', sendMessage);
-userInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
+// === Send Message ===
+elements.sendButton.addEventListener('click', sendMessage);
+elements.userInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
     sendMessage();
   }
 });
 
 async function sendMessage() {
-  const message = userInput.value.trim();
+  const message = elements.userInput.value.trim();
   if (!message) return;
 
   appendMessage(message, 'user');
-  userInput.value = '';
-  userInput.style.height = 'auto';
-
-  typingIndicator.classList.remove('hidden');
+  state.messageHistory.push({ sender: 'user', text: message, time: getCurrentTime() });
+  elements.userInput.value = '';
+  elements.userInput.style.height = 'auto';
   scrollToBottom();
 
+  showTypingIndicator();
   try {
-    const res = await fetch('/ask', {
+    const response = await fetch('/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question: message })
     });
 
-    if (!res.ok) throw new Error('Network response was not ok');
+    if (!response.ok) throw new Error('Lỗi kết nối máy chủ: ' + response.status);
 
-    const data = await res.json();
-    typingIndicator.classList.add('hidden');
-    await typeBotMessageHTML(data.answer);
+    const data = await response.json();
+    hideTypingIndicator();
+    await typeBotMessage(data.answer);
   } catch (error) {
-    typingIndicator.classList.add('hidden');
-    await typeBotMessageHTML('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+    hideTypingIndicator();
+    await typeBotMessage('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+    showNotification(error.message || 'Không thể kết nối với máy chủ', 'error');
   }
 }
 
-// === HIỂN THỊ TIN NHẮN NGƯỜI DÙNG ===
-function appendMessage(text, sender) {
-  const div = document.createElement('div');
-  div.className = `chat-message ${sender}-message`;
+// === Typing Indicator ===
+const showTypingIndicator = () => {
+  elements.typingIndicator.classList.remove('hidden');
+  scrollToBottom();
+};
+
+const hideTypingIndicator = () => {
+  elements.typingIndicator.classList.add('hidden');
+};
+
+// === Append Message ===
+const appendMessage = (text, sender) => {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message-row ${sender}`;
+  
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${sender === 'user' ? 'user-avatar' : 'bot-avatar'}`;
+  avatar.innerHTML = sender === 'user' ? 'D' : '<i class="fas fa-robot" style="font-size: 18px;"></i>';
 
   const contentDiv = document.createElement('div');
   contentDiv.className = 'message-content';
   contentDiv.innerHTML = `<p>${text}</p><span class="message-time">${getCurrentTime()}</span>`;
 
-  div.appendChild(contentDiv);
-  chatBox.appendChild(div);
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(contentDiv);
+  elements.chatBox.appendChild(messageDiv);
   scrollToBottom();
-}
+};
 
-// === HIỆU ỨNG ĐÁNH MÁY HTML ===
-async function typeBotMessageHTML(html) {
-  if (document.querySelector('.welcome-message')) {
-    document.querySelector('.welcome-message').remove();
-  }
-
+// === Type Bot Message with Animation ===
+async function typeBotMessage(html) {
   const wrapper = document.createElement('div');
   wrapper.innerHTML = html;
 
-  const div = document.createElement('div');
-  div.className = 'chat-message bot-message';
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'message-row bot';
+  messageDiv.style.display = 'flex';
+  messageDiv.style.alignItems = 'flex-start';
+  messageDiv.style.gap = '10px';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar bot-avatar';
+  avatar.innerHTML = '<i class="fas fa-robot" style="font-size: 18px;"></i>';
+
   const contentDiv = document.createElement('div');
   contentDiv.className = 'message-content';
-  div.appendChild(contentDiv);
-  chatBox.appendChild(div);
+
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(contentDiv);
+  elements.chatBox.appendChild(messageDiv);
   scrollToBottom();
 
   for (const child of wrapper.childNodes) {
@@ -175,14 +179,16 @@ async function typeBotMessageHTML(html) {
   timeSpan.textContent = getCurrentTime();
   contentDiv.appendChild(timeSpan);
 
+  state.messageHistory.push({ sender: 'bot', text: html, time: getCurrentTime() });
   scrollToBottom();
-  typingIndicator.classList.add('hidden');
 
-  if (chatPopup.classList.contains('hidden') || chatPopup.classList.contains('minimized')) {
-    hasNewMessage = true;
-    notificationBadge.classList.remove('hidden');
-    let count = parseInt(notificationBadge.textContent) || 0;
-    notificationBadge.textContent = (count + 1).toString();
+  if (elements.chatPopup.classList.contains('hidden')) {
+    state.hasNewMessage = true;
+    if (elements.notificationBadge) {
+      elements.notificationBadge.classList.remove('hidden');
+      let count = parseInt(elements.notificationBadge.textContent) || 0;
+      elements.notificationBadge.textContent = (count + 1).toString();
+    }
   }
 }
 
@@ -190,65 +196,69 @@ async function typeElement(node, parent) {
   if (node.nodeType === Node.TEXT_NODE) {
     const text = node.textContent;
     for (let i = 0; i < text.length; i++) {
-      parent.innerHTML += text[i];
+      const char = text[i];
+      if (char === '\n') {
+        parent.appendChild(document.createElement('br'));
+      } else {
+        parent.innerHTML += char;
+      }
       scrollToBottom();
-      await new Promise(r => setTimeout(r, 15));
+      await new Promise(resolve => setTimeout(resolve, 15));
     }
   } else if (node.nodeType === Node.ELEMENT_NODE) {
-    const el = document.createElement(node.tagName);
-    for (const attr of node.attributes) {
-      el.setAttribute(attr.name, attr.value);
+    const element = document.createElement(node.tagName);
+    for (const attribute of node.attributes) {
+      element.setAttribute(attribute.name, attribute.value);
     }
-
-    parent.appendChild(el);
+    parent.appendChild(element);
     for (const child of node.childNodes) {
-      await typeElement(child, el);
+      await typeElement(child, element);
     }
   }
 }
 
-// === GIỜ HIỆN TẠI ===
-function getCurrentTime() {
-  const now = new Date();
-  return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-}
 
-// === CUỘN CUỐI ===
-function scrollToBottom() {
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// === TỰ GIÃN TEXTAREA ===
-userInput.addEventListener('input', () => {
-  userInput.style.height = 'auto';
-  userInput.style.height = `${Math.min(userInput.scrollHeight, 120)}px`;
+// === Auto-resize Textarea ===
+elements.userInput.addEventListener('input', () => {
+  elements.userInput.style.height = 'auto';
+  elements.userInput.style.height = `${Math.min(elements.userInput.scrollHeight, 120)}px`;
 });
 
-// === THÔNG BÁO NHỎ ===
-function showNotification(message) {
-  const notification = document.createElement('div');
-  notification.className = 'notification';
-  notification.textContent = message;
-  document.body.appendChild(notification);
+// === Notification Styles ===
+const notificationStyles = `
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ef4444;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 2000;
+  }
+  .notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .notification-success {
+    background-color: #10b981;
+  }
+`;
 
-  setTimeout(() => {
-    notification.classList.add('show');
-  }, 10);
+const styleSheet = document.createElement('style');
+styleSheet.textContent = notificationStyles;
+document.head.appendChild(styleSheet);
 
-  setTimeout(() => {
-    notification.classList.remove('show');
-    setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 300);
-  }, 3000);
-}
-
-
-
-
-
-
-
+// === Error Handling for Missing Elements ===
+Object.keys(elements).forEach(key => {
+  if (!elements[key] && key !== 'quickButtons' && key !== 'notificationBadge') {
+    console.error(`Element with ID '${key}' not found in the DOM`);
+  }
+});
 
 
 
